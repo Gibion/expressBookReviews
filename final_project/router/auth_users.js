@@ -29,12 +29,26 @@ const authenticatedUser = (username,password)=>{ //returns boolean
 
 //only registered users can login
 regd_users.post("/login", (req,res) => {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+    const { username, password } = req.body;
+    if (!isValid(username, password)) {
+      return res.status(400).json({ message: "Invalid username" });
+    }   
+    if (authenticatedUser(username,password)) {
+      let accessToken = jwt.sign({
+          data: password
+        }, 'access', { expiresIn: 60 * 20 });
+        req.session.authorization = {
+          accessToken, username 
+      }
+      return res.status(200).send("Customer successfully logged in");
+    } else {
+      return res.status(208).send("Incorrect Login. Check credentials");
+    }
 });
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
+
     const isbn = req.params.isbn;
     let filtered_book = books[isbn]
     if (filtered_book) {
@@ -49,8 +63,7 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
     else{
         res.send("Unable to find this ISBN!");
     }
-  return res.status(300).json({message: "Yet to be implemented"});
-});
+  });
 
 // delete book review
 regd_users.delete("/auth/review/:isbn", (req, res) => {
